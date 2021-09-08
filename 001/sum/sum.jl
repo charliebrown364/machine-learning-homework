@@ -16,4 +16,4 @@ end
 
 end_time = time_ns()
 
-print((end_time - start) / 10^10)
+print("Julia : ", (end_time - start) / 10^10)

@@ -20,6 +20,6 @@ for _ in range(10):
 
 end_time = time.time()
 
-print("python time:", (end_time - start_time) / 10)
+print("Python:", (end_time - start_time) / 10)
 
 # sh 001/pseudoinverse/pseudoinverse.sh

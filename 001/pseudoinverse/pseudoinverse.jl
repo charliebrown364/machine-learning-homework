@@ -23,6 +23,6 @@ end
 
 end_time = time_ns()
 
-println("julia  time: ", (end_time - start_time) / 10^10, "")
+println("Julia : ", (end_time - start_time) / 10^10, "")
 
 # sh 001/pseudoinverse/pseudoinverse.sh

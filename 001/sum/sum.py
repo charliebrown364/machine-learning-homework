@@ -15,4 +15,4 @@ for _ in range(10):
 
 end_time = time.time()
 
-print((end_time - start) / 10)
+print("Python:", (end_time - start) / 10)

@@ -11,20 +11,23 @@ function rss(b_0, b_1)
     return rss
 end
 
-function gradient_descent_parameter_fitting(starting_point)
+function gradient_descent_parameter_fitting(n, starting_point)
     b_0, b_1 = starting_point
-    for _ in 1:num_iterations
+    for i in 1:num_iterations
         b_0 -= alpha * (rss(b_0 + delta, b_1) - rss(b_0 - delta, b_1)) / (2 * delta)
         b_1 -= alpha * (rss(b_0, b_1 + delta) - rss(b_0, b_1 - delta)) / (2 * delta)
+        if n == 1 && i < 2
+            println("iteration: (b_0, b_1) =", (b_0, b_1))
+        end
     end
 end
 
 start_time = time_ns()
 
-for _ in 1:10
-    gradient_descent_parameter_fitting([0, 2])
+for n in 1:10
+    gradient_descent_parameter_fitting(n, [0, 2])
 end
 
 end_time = time_ns()
 
-print((end_time - start_time) / 10^10)
+print("Julia : ", (end_time - start_time) / 10^10)

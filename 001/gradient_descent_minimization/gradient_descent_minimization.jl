@@ -14,22 +14,25 @@ function new_y(x, y, alpha, delta)
     return x - alpha * central_diff_quotient
 end
 
-function gradient_descent_minimization(starting_point, num_updates, alpha, delta)
+function gradient_descent_minimization(n, starting_point, num_updates, alpha, delta)
     
     x, y = starting_point
-    for _ in 1:num_updates
+    for i in 1:num_updates
         x = new_x(x, y, alpha, delta)
         y = new_y(x, y, alpha, delta)
+        if n == 1 && i < 2
+            println("iteration: (x, y) =", (x, y))
+        end
     end
 
 end
 
 start_time = time_ns()
 
-for _ in 1:10
-    gradient_descent_minimization([1, 2], 2, 0.001, 0.01)
+for n in 1:10
+    gradient_descent_minimization(n, [1, 2], 2, 0.001, 0.01)
 end
 
 end_time = time_ns()
 
-println((end_time - start_time) / 10^10)
+println("Julia : ", (end_time - start_time) / 10^10)
