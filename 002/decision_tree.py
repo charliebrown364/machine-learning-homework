@@ -1,88 +1,107 @@
 import math
 
-class DesicionTree:
-    def __init__(self, points_list):
-        self.points = points_list
+def calc_entropy(points):
 
-    def run(self):
-        self.do_thing(self.points)
-
-    def do_thing(self, points):
-        
-        weighted_avgs = []
-        splits = self.get_splits(points)
-        
-        for axis, midpoint in splits:
-
-            less_than = []
-            greater_than = []
-            
-            for point in points:
-
-                if point[axis] < midpoint:
-                    less_than.append(point)
-                else:
-                    greater_than.append(point)
-
-            weighted_avg = self.calc_weighted_avg(less_than, greater_than)
-            weighted_avgs.append(weighted_avg)
-        
-        best_split = splits[weighted_avgs.index(min(weighted_avgs))]
+    num_class_0 = sum([point['class'] == 0 for point in points])
+    num_class_1 = sum([point['class'] == 1 for point in points])
     
-        print(weighted_avgs)
-        print(best_split)        
+    if num_class_0 == 0 or num_class_1 == 0:
+        return 0
+    
+    p0 = num_class_0 / len(points)
+    p1 = num_class_1 / len(points)
+    
+    return - p0 * math.log(p0) - p1 * math.log(p1)
 
-    def get_splits(self, points):
+class Split:
+    def __init__(self, dim, points, midpoint):
+        self.dim = dim
+        self.points = points
+        self.midpoint = midpoint
+        self.children = self.set_children()
 
-        splits = []
-        dimensions = [key for key in points[0].keys() if key != 'class']
+    def set_children(self):
 
-        for dim in dimensions:
+        divided_points = [[], []]
 
-            values = list(set([point[dim] for point in points]))
-            for i in range(len(values) - 1):
-                midpoint = (values[i] + values[i + 1]) / 2
-                splits.append([dim, midpoint])
-
-        return splits
-
-    def calc_weighted_avg(self, less_than, greater_than):
+        for point in self.points:
+            if point[self.dim] < self.midpoint:
+                divided_points[0].append(point)
+            else:
+                divided_points[1].append(point)
         
-        less_than_weight    = len(less_than)    * self.calc_entropy(less_than)
-        greater_than_weight = len(greater_than) * self.calc_entropy(greater_than)
-        
-        numerator = less_than_weight + greater_than_weight
-        total = len(less_than + greater_than)
-        
-        return numerator / total
+        return [Node(points) for points in divided_points]
 
-    def calc_entropy(self, points):
+    def get_weighted_avg(self):
+        less_than_points, greater_than_points = [node.points for node in self.children]
+        less_than_weight    = len(less_than_points)    * calc_entropy(less_than_points)
+        greater_than_weight = len(greater_than_points) * calc_entropy(greater_than_points)
+        return (less_than_weight + greater_than_weight) / len(self.points)
 
-        num_0 = sum([point['class'] == 0 for point in points])
-        num_1 = sum([point['class'] == 1 for point in points])
-        nums = [num_0, num_1]
+    def calc_entropy(self, input_points):
 
-        if 0 in nums:
+        num_class_0 = sum([point['class'] == 0 for point in input_points])
+        num_class_1 = sum([point['class'] == 1 for point in input_points])
+
+        if num_class_0 == 0 or num_class_1 == 0:
             return 0
 
-        entropy = 0
-        for n in nums:
-            n /= sum(nums)
-            entropy -= n * math.log(n)
+        p0 = num_class_0 / len(input_points)
+        p1 = num_class_1 / len(input_points)
 
-        return entropy
+        return - p0 * math.log(p0) - p1 * math.log(p1)
 
-# replace splits with node class (each bubble is a node)
+class Node:
+    def __init__(self, points):
+        self.points = points
+        self.splits = self.set_splits()
+    
+    def set_splits(self):
 
-points = [
-    {'x': 1, 'y': 1, 'class': 0},
-    {'x': 1, 'y': 2, 'class': 0},
-    {'x': 1, 'y': 3, 'class': 0},
-    {'x': 2, 'y': 1, 'class': 0},
-    {'x': 2, 'y': 2, 'class': 1},
-    {'x': 2, 'y': 3, 'class': 1},
-    {'x': 3, 'y': 2, 'class': 1}
-]
+        splits = []
 
-desicion_tree = DesicionTree(points)
-desicion_tree.run()
+        for key in self.points[0].keys():
+            if key != 'class':
+
+                values = list(set([point[key] for point in self.points]))
+                for i in range(len(values) - 1):
+                    midpoint = (values[i] + values[i + 1]) / 2
+                    split = Split(key, self.points, midpoint)
+                    splits.append(split)
+        
+        return splits
+
+    def find_best_split(self):
+        weighted_avgs = [split.get_weighted_avg() for split in self.splits]
+        return self.splits[weighted_avgs.index(min(weighted_avgs))]
+
+    def check_if_pure(self):
+        return calc_entropy(self.points) == 0
+
+class DecisionTree:
+    def __init__(self):
+        self.root = None
+        self.leaf_nodes = None
+
+    def fit(self, points):
+                
+        self.root = Node(points)
+        self.leaf_nodes = [self.root]
+
+        while len(self.leaf_nodes) != 0:
+            
+            current_node = self.leaf_nodes[0]
+            best_split = current_node.find_best_split()
+
+            for node in best_split.children:
+                if not node.check_if_pure():
+                    self.leaf_nodes.append(node)
+                    
+            for node in self.leaf_nodes:
+                if node.check_if_pure():
+                    self.leaf_nodes.remove(node)
+
+        print('\ndone')
+
+    def predict(self, point):
+        pass
