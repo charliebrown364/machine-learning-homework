@@ -25,10 +25,8 @@ class Split:
         divided_points = [[], []]
 
         for point in self.points:
-            if point[self.dim] < self.midpoint:
-                divided_points[0].append(point)
-            else:
-                divided_points[1].append(point)
+            point_index = point[self.dim] > self.midpoint # False = 0, True = 1
+            divided_points[point_index].append(point)
         
         return [Node(points) for points in divided_points]
 
@@ -37,19 +35,6 @@ class Split:
         less_than_weight    = len(less_than_points)    * calc_entropy(less_than_points)
         greater_than_weight = len(greater_than_points) * calc_entropy(greater_than_points)
         return (less_than_weight + greater_than_weight) / len(self.points)
-
-    def calc_entropy(self, input_points):
-
-        num_class_0 = sum([point['class'] == 0 for point in input_points])
-        num_class_1 = sum([point['class'] == 1 for point in input_points])
-
-        if num_class_0 == 0 or num_class_1 == 0:
-            return 0
-
-        p0 = num_class_0 / len(input_points)
-        p1 = num_class_1 / len(input_points)
-
-        return - p0 * math.log(p0) - p1 * math.log(p1)
 
 class Node:
     def __init__(self, points):
@@ -75,33 +60,35 @@ class Node:
         weighted_avgs = [split.get_weighted_avg() for split in self.splits]
         return self.splits[weighted_avgs.index(min(weighted_avgs))]
 
-    def check_if_pure(self):
+    def is_pure(self):
         return calc_entropy(self.points) == 0
 
 class DecisionTree:
     def __init__(self):
         self.root = None
-        self.leaf_nodes = None
-
+        
     def fit(self, points):
-                
+
         self.root = Node(points)
-        self.leaf_nodes = [self.root]
+        current_node = self.root
+        nodes_to_do = [current_node]
 
-        while len(self.leaf_nodes) != 0:
-            
-            current_node = self.leaf_nodes[0]
-            best_split = current_node.find_best_split()
+        while len(nodes_to_do) > 0:
 
-            for node in best_split.children:
-                if not node.check_if_pure():
-                    self.leaf_nodes.append(node)
-                    
-            for node in self.leaf_nodes:
-                if node.check_if_pure():
-                    self.leaf_nodes.remove(node)
+            current_node = nodes_to_do[0]
+            nodes_to_do.remove(current_node)
 
-        print('\ndone')
-
+            for i in [0, 1]:
+                temp_node = current_node.find_best_split().children[i]
+                if not temp_node.is_pure():
+                    nodes_to_do.insert(i, temp_node)
+    
     def predict(self, point):
-        pass
+        
+        current_node = self.root
+        while not current_node.is_pure():
+            best_split = current_node.find_best_split()
+            child_index = point[best_split.dim] > best_split.midpoint # False = 0, True = 1
+            current_node = best_split.children[child_index]
+        
+        return current_node.points[0]['class']
