@@ -3,8 +3,11 @@ import time
 alpha = 0.001
 delta = 0.01
 num_iterations = 10000
-points = [[0, 0], [1, 1], [2, 4]]
-starting_point = [0, 2]
+# points = [[0, 0], [1, 1], [2, 4]]
+# starting_point = [0, 2]
+
+points = [[0, 1], [2, 5]]
+starting_point = [2, 1]
 
 def rss(b_0, b_1):
     rss = 0
@@ -17,14 +20,17 @@ def gradient_descent_parameter_fitting(n):
     for i in range(num_iterations):
         b_0 -= alpha * (rss(b_0 + delta, b_1) - rss(b_0 - delta, b_1)) / (2 * delta)
         b_1 -= alpha * (rss(b_0, b_1 + delta) - rss(b_0, b_1 - delta)) / (2 * delta)
-        if n == 0 and i < 2:
+        # if n == 0 and i < 2:
+        if i == 0:
            print("py iteration: (b_0, b_1) =", (b_0, b_1))
 
-start_time = time.time()
+gradient_descent_parameter_fitting(0)
 
-for n in range(10):
-    gradient_descent_parameter_fitting(n)
+# start_time = time.time()
 
-end_time = time.time()
+# for n in range(10):
+#     gradient_descent_parameter_fitting(n)
 
-print("Python:", (end_time - start_time) / 10)
+# end_time = time.time()
+
+# print("Python:", (end_time - start_time) / 10)
